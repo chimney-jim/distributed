@@ -22,7 +22,7 @@ class UDPClient {
       DatagramPacket sendDatagram = new DatagramPacket(sendData, sendData.length, IPAddressOut, 2222);
 
       // Echo message to ensure it is correct //
-      System.out.println("A request for " + args[0] + " is being sent");
+      System.out.println("A request for " + args[0] + " is being sent to " + IPAddressOut);
 
       // Prepare a packet of information  and send it via the 'clientSocket' //
       clientSocket.send(sendDatagram);
