@@ -20,7 +20,7 @@ public class UDPServerRouter {
      */
     public UDPServerRouter() {
         try {
-            serverSocket = new DatagramSocket(21212);
+            serverSocket = new DatagramSocket(2222);
         
         }catch( SocketException e ) {
             System.out.println( e.getMessage() );
@@ -58,7 +58,7 @@ public class UDPServerRouter {
 		// Disassemble the received packet into: the payload-data - packed, 
 		// the IP - made InetAddress type //
 
-            this.Router(0, sendData, IPAddress, "2222");
+            this.Router(0, sendData, IPAddress, "2121");
             
        // Loop through the Routing Table to find an IP match
             /*for( int i = 0 ; i < ipArray.length; i++ ) {
