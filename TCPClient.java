@@ -16,7 +16,7 @@ class TCPClient {
 
 	  // Prepare data structure for payloads - sending and receiving //
       byte[] sendData = new byte[1024]; 
-      byte[] receiveData = new byte[10240]; 
+      byte[] receiveData = new byte[1024]; 
       int bytesRead;
       // Construct the message itself - and 'pack' it //
       sendData = args[0].getBytes();
@@ -44,19 +44,15 @@ class TCPClient {
       //int current = bytesRead;
       System.out.println("Waiting to receive package...");
       String stuff = "";
-      String stuffTrim = "";
 
       do{
-        //bytesRead = in.read(receiveData, 0, receiveData.length);
-      //bytesRead = in.read(receiveData, 0, receiveData.length);
-        //if (bytesRead >= 0)
-            //current += bytesRead;
-      fos.write(receiveData, 0, bytesRead);
+        bytesRead = in.read(receiveData, 0, receiveData.length);
+         in.read(receiveData, 0, receiveData.length);
+        fos.write(receiveData, 0, receiveData.length);
         stuff = new String(receiveData);
-        stuffTrim = stuff.trim();
-        System.out.println(stuffTrim);
-     //fos = sendSocket.getOutputStream();
-      }while(stuffTrim != "###");
+        stuff = stuff.trim();
+        System.out.println(stuff);
+      }while(bytesRead != -1);
 
       //fos.flush();
       //fos.close();

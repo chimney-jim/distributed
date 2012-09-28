@@ -42,7 +42,8 @@ class TCPServer {
           int i = 0;
           while( (bytesRead = outToClient.read(sendData)) != -1){
             //System.out.println("There are " + fileStreamOut.available() + "remaining bytes");
-			fileStreamOut.write(sendData, 0, bytesRead);
+			outToClient.read(sendData);
+		    fileStreamOut.write(sendData, 0, sendData.length);
             //bytesRead = fileStreamOut.read(sendData);
 			System.out.println(sendData);
 			System.out.println("Data packed...Sending...");
