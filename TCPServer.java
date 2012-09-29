@@ -10,8 +10,8 @@ class TCPServer {
         ServerSocket serverSocket = new ServerSocket(2222);
         Socket clientSocket = null;
 
-      byte[] receiveData = new byte[10240]; 
-      byte[] sendData  = new byte[10240]; 
+      byte[] receiveData = new byte[1024]; 
+      byte[] sendData  = new byte[1024]; 
   
       while(true) 
         { 
@@ -25,7 +25,7 @@ class TCPServer {
            inFromClient.read(receiveData);
            String message = new String(receiveData);
 		   message = message.trim();
-		   inFromClient.close();
+		   //inFromClient.close();
 		   //clientSocket.close();
 		   
           System.out.println("A packet of: <" + message + "> has been received");
@@ -41,7 +41,7 @@ class TCPServer {
 
           int i = 0;
           while( (bytesRead = outToClient.read(sendData)) != -1){
-            //System.out.println("There are " + fileStreamOut.available() + "remaining bytes");
+            System.out.println("There are " + outToClient.available() + "remaining bytes");
 			outToClient.read(sendData);
 		    fileStreamOut.write(sendData, 0, sendData.length);
             //bytesRead = fileStreamOut.read(sendData);
@@ -51,9 +51,9 @@ class TCPServer {
 			i++;
           }
 		  
-		  byte[] lastMessage = new byte[10240];
-		  lastMessage = "###".getBytes();
-		  fileStreamOut.write(lastMessage);
+		  //byte[] lastMessage = new byte[1];
+		  //lastMessage = "###".getBytes();
+		  //fileStreamOut.write(lastMessage);
         } 
     } 
 }  
