@@ -10,8 +10,8 @@ class TCPServer {
         ServerSocket serverSocket = new ServerSocket(2222);
         Socket clientSocket = null;
 
-      byte[] receiveData = new byte[1024]; 
-      byte[] sendData  = new byte[1024]; 
+      byte[] receiveData = new byte[10240]; 
+      byte[] sendData  = new byte[10240]; 
   
       while(true) 
         { 
@@ -51,9 +51,9 @@ class TCPServer {
 			i++;
           }
 		  
-		  //byte[] lastMessage = new byte[1];
-		  //lastMessage = "###".getBytes();
-		  //fileStreamOut.write(lastMessage);
+		  byte[] lastMessage = new byte[10240];
+		  lastMessage = "###".getBytes();
+		  fileStreamOut.write(lastMessage);
         } 
     } 
 }  
