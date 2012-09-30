@@ -5,55 +5,42 @@ class TCPServer {
   public static void main(String args[]) throws Exception 
     { 
   
-	  // The chosen port of the server is: 21212 //
-      //DatagramSocket serverSocket = new DatagramSocket(21212);
         ServerSocket serverSocket = new ServerSocket(2222);
         Socket clientSocket = null;
 
-      byte[] receiveData = new byte[1024]; 
-      byte[] sendData  = new byte[1024]; 
-  
-      while(true) 
-        { 
-  
-          //DatagramPacket receivePacket = 
-          //   new DatagramPacket(receiveData, receiveData.length);
-          System.out.println("Waiting to recieve a packet...");
-           //serverSocket.receive(receivePacket);
-           clientSocket = serverSocket.accept();
-           InputStream inFromClient = new DataInputStream(clientSocket.getInputStream());
-           inFromClient.read(receiveData);
-           String message = new String(receiveData);
-		   message = message.trim();
-		   //inFromClient.close();
-		   //clientSocket.close();
-		   
-          System.out.println("A packet of: <" + message + "> has been received");
+        InputStream inFromClient = new DataInputStream(clientSocket.getInputStream());
+        InputStream outToClient = new FileInputStream(sendFile);
+        DataOutputStream fileStreamOut = new DataOutputStream(clientSocket.getOutputStream());
+        
+        byte[] receiveData = new byte[10240]; 
+        byte[] sendData  = new byte[10240]; 
+        int bytesRead = 0;
 
-		  // 'Pack' the sentence into 'sendData', echo to verify, make a packet of it, and send it back via the 'port'//
-          File sendFile = new File(message);
-		  //OutputStream outToClient = new DataOutputStream(clientSocket.getOutputStream());
-		  InputStream outToClient = new FileInputStream(sendFile);
-          DataOutputStream fileStreamOut = new DataOutputStream(clientSocket.getOutputStream());
-          int bytesRead = 0;
-		  //outToClient.write(sendData);
-		  
+        while(true) 
+            { 
+    
+            System.out.println("Waiting to recieve a packet...");
+            clientSocket = serverSocket.accept();
+            inFromClient.read(receiveData);
+            String message = new String(receiveData);
+            message = message.trim();
+            
+            System.out.println("A packet of: <" + message + "> has been received");
 
-          int i = 0;
-          while( (bytesRead = outToClient.read(sendData)) != -1){
-            System.out.println("There are " + outToClient.available() + "remaining bytes");
-			outToClient.read(sendData);
-		    fileStreamOut.write(sendData, 0, sendData.length);
-            //bytesRead = fileStreamOut.read(sendData);
-			System.out.println(sendData);
-			System.out.println("Data packed...Sending...");
-			System.out.println("Datagram #" + i + " sent");
-			i++;
-          }
-		  
-		  //byte[] lastMessage = new byte[1];
-		  //lastMessage = "###".getBytes();
-		  //fileStreamOut.write(lastMessage);
+            System.out.println("Fetching data");
+
+            // Fetching data
+            File sendFile = new File(message);
+            
+            System.out.println("Data sending...");
+            
+            while( (bytesRead = outToClient.read(sendData)) != -1){
+                //System.out.println("There are " + outToClient.available() + "remaining bytes");
+                fileStreamOut.write(sendData, 0, bytesRead);
+                System.out.println(sendData);
+            }
+
+            System.out.println("Data transfer complete.");
         } 
     } 
 }  
