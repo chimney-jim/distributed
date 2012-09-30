@@ -8,11 +8,15 @@ public class TCPServerRouter
       static Socket clientSocket = null;
       int portInt;
       static int bytesRead = 0;
-      String ipAddress = null;
+	  static int sizeOfArgs = 0;
+      static String ipAddressOfClient = null;
+	  static String ipAddressOfServer = null;
+	  static String[] messages = null;
       static String ipArray [][] = new String[5][3];
    
       static byte[] receiveData = new byte[10240]; 
       static byte[] sendData  = new byte[10240]; 
+	  static byte[] receiveFile = new byte[10240];
    	
       public TCPServerRouter()
       {
@@ -30,51 +34,58 @@ public class TCPServerRouter
       }
    	
       public void getAndBuildDataToServer() throws Exception {
-         while(true)
-         {
             InputStream inFromClient = new DataInputStream(clientSocket.getInputStream());
             inFromClient.read(receiveData);
-            sendData = receiveData;
             String message = new String (receiveData);
             message = message.trim();
-            inFromClient.read(receiveData);
-            ipAddress = new String(receiveData);
-            ipAddress = ipAddress.trim();
-         
-            for( int i = 0 ; i < ipArray.length; i++ ) {
-            
-               if( ipArray[i][0].equals(ipAddress)) 
+			System.out.println(message);
+			messages = message.split(":");
+			message = messages[0];
+			ipAddressOfClient = messages[1];
+			ipAddressOfServer = messages[2];
+			sendData = messages[0].getBytes();
+			
+            for( int i = 0 ; i < sizeOfArgs; i++ ) {
+               if( ipArray[i][0].equals(ipAddressOfServer)) 
                {
-                  this.Router( i, sendData, ipAddress, ipArray[i][2] );
-               }                
-            }
-            
-         }                            
-      }
+                  this.Router( i, sendData, ipAddressOfServer, ipArray[i][2] );
+               }		   
+            }    
+         }                     
       
 
         public static void main(String args[]){
-            for( int i = 0 ; i < ipArray.length; i++ ) {
+			sizeOfArgs = args.length;
+		
+            for( int i = 0 ; i < sizeOfArgs; i++ ) {
                 ipArray[i][0] = args[i];
                 ipArray[i][2] = "2222";
             }
             
             TCPServerRouter myServerRouter = new TCPServerRouter();
-            try{
+            while(true){
+			try{
+				System.out.println("Waiting to receive message");
                 clientSocket = incomingSocket.accept();
+				System.out.println("Message received...getting data.");
+				
                 myServerRouter.getAndBuildDataToServer();
-
-                InputStream inFromServer = new DataInputStream(outgoingServerSocket.getInputStream());
+				
+				System.out.println("Data built and sent");
+                
+				InputStream inFromServer = new DataInputStream(outgoingServerSocket.getInputStream());
                 DataOutputStream fileStreamOut = new DataOutputStream(clientSocket.getOutputStream());
             
-
-                while( (bytesRead = inFromServer.read(receiveData)) != -1){
-                    fileStreamOut.write(receiveData, 0, bytesRead);    
+				System.out.println("Receiving data");
+                while( (bytesRead = inFromServer.read(receiveFile)) != -1){
+                    System.out.println("There are " + inFromServer.available() + " remaining bytes");
+					fileStreamOut.write(receiveFile, 0, bytesRead);    
                 }
             }
             catch(Exception e){
                 System.out.println(e);
             }
+			}
         }
 
       public void Router( int link, byte[] message, String ipAddress,
@@ -128,6 +139,7 @@ public class TCPServerRouter
           outgoingServerSocket = new Socket(ipAddress, port);
           OutputStream out = new DataOutputStream(outgoingServerSocket.getOutputStream());
           out.write(sendData);
+		  	System.out.println("check");
           }
           catch(Exception e){
               System.out.println(e);
