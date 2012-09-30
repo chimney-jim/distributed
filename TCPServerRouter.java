@@ -1,51 +1,83 @@
    import java.io.*; 
    import java.net.*; 
 	  
-   public class TCPServerRouter
+public class TCPServerRouter
    {
-      ServerSocket incomingSocket = null;
-      ServerSocket outgoingServerSocket = null;
-      Socket clientSocket = null;
+      static ServerSocket incomingSocket = null;
+      static Socket outgoingServerSocket = null;
+      static Socket clientSocket = null;
       int portInt;
-      String ipArray [][] = new String[5][3];
+      static int bytesRead = 0;
+      String ipAddress = null;
+      static String ipArray [][] = new String[5][3];
    
-      byte[] receiveData = new byte[1024]; 
-      byte[] sendData  = new byte[1024]; 
+      static byte[] receiveData = new byte[10240]; 
+      static byte[] sendData  = new byte[10240]; 
    	
       public TCPServerRouter()
       {
          try
          {
-            incomingSocket = new ServerSocket(portInt);
+            incomingSocket = new ServerSocket(2222);
          }
             catch(IOException e)
             {
                System.out.println("Could not listen on port: " + portInt);
             }
+        
+        
+
       }
    	
-      public void getAndBuildData() throws Exception {
+      public void getAndBuildDataToServer() throws Exception {
          while(true)
          {
-            clientSocket = incomingSocket.accept();
             InputStream inFromClient = new DataInputStream(clientSocket.getInputStream());
             inFromClient.read(receiveData);
+            sendData = receiveData;
             String message = new String (receiveData);
             message = message.trim();
-            inFromClient.close();
+            inFromClient.read(receiveData);
+            ipAddress = new String(receiveData);
+            ipAddress = ipAddress.trim();
          
             for( int i = 0 ; i < ipArray.length; i++ ) {
             
-               if( ipArray[i][0].equals(  incomingSocket.getInetAddress())) 
+               if( ipArray[i][0].equals(ipAddress)) 
                {
-                  this.Router( i, sendData, incomingSocket.getInetAddress(), ipArray[i][2] );
+                  this.Router( i, sendData, ipAddress, ipArray[i][2] );
                }                
             }
             
-         }
+         }                            
       }
       
-      public void Router( int link, byte[] message, InetAddress ipAddress,
+
+        public static void main(String args[]){
+            for( int i = 0 ; i < ipArray.length; i++ ) {
+                ipArray[i][0] = args[i];
+                ipArray[i][2] = "2222";
+            }
+            
+            TCPServerRouter myServerRouter = new TCPServerRouter();
+            try{
+                clientSocket = incomingSocket.accept();
+                myServerRouter.getAndBuildDataToServer();
+
+                InputStream inFromServer = new DataInputStream(outgoingServerSocket.getInputStream());
+                DataOutputStream fileStreamOut = new DataOutputStream(clientSocket.getOutputStream());
+            
+
+                while( (bytesRead = inFromServer.read(receiveData)) != -1){
+                    fileStreamOut.write(receiveData, 0, bytesRead);    
+                }
+            }
+            catch(Exception e){
+                System.out.println(e);
+            }
+        }
+
+      public void Router( int link, byte[] message, String ipAddress,
         String ports ) throws Exception {
         
          int port = Integer.parseInt( ports );
@@ -90,30 +122,15 @@
          }
         
       }
-   	/* Not Done yet
-      public void sendMessage( byte[] message,  InetAddress ipAddress, int port ) {
-        
-         try {
-            outgoingServerSocket = new ServerSocket(port);
-         
-         }
-            catch( SocketException e ) {
-               System.out.println( e.getMessage() );
-            }
-        
-         try {
-            
-   			
-            DatagramPacket sendPacket = new DatagramPacket( message, message.length, 
-                ipAddress, port );
-         
-            outgoingServerSocket.send(sendPacket);
-         
-         }
-            catch( IOException e ) {
-               System.out.println( e.getMessage() );
-            }
-   			
+   	// Not Done yet
+      public void sendMessage( byte[] message,  String ipAddress, int port ) {
+          try{
+          outgoingServerSocket = new Socket(ipAddress, port);
+          OutputStream out = new DataOutputStream(outgoingServerSocket.getOutputStream());
+          out.write(sendData);
+          }
+          catch(Exception e){
+              System.out.println(e);
+          }
       }
-   	*/
    }
