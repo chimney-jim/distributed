@@ -9,6 +9,10 @@ public class TCPServerRouter
       int portInt;
       static int bytesRead = 0;
 	  static int sizeOfArgs = 0;
+	  static int timesRun = 0;
+	  static long start = 0;
+	  static long elapsedTime = 0;
+	  static long avgLookup = 0;
       static String ipAddressOfClient = null;
 	  static String ipAddressOfServer = null;
 	  static String[] messages = null;
@@ -45,10 +49,12 @@ public class TCPServerRouter
 			ipAddressOfServer = messages[2];
 			sendData = messages[0].getBytes();
 			
+			start = System.currentTimeMillis();
             for( int i = 0 ; i < sizeOfArgs; i++ ) {
                if( ipArray[i][0].equals(ipAddressOfServer)) 
                {
-                  this.Router( i, sendData, ipAddressOfServer, ipArray[i][2] );
+					elapsedTime = System.currentTimeMillis()-start;
+					this.Router( i, sendData, ipAddressOfServer, ipArray[i][2] );
                }		   
             }    
          }                     
@@ -75,12 +81,22 @@ public class TCPServerRouter
                 
 				InputStream inFromServer = new DataInputStream(outgoingServerSocket.getInputStream());
                 DataOutputStream fileStreamOut = new DataOutputStream(clientSocket.getOutputStream());
-            
+				
 				System.out.println("Receiving data");
-                while( (bytesRead = inFromServer.read(receiveFile)) != -1){
-                    System.out.println("There are " + inFromServer.available() + " remaining bytes");
+
+				do{
+                    bytesRead = inFromServer.read(receiveFile);
+					System.out.println("There are " + inFromServer.available() + " remaining bytes");
 					fileStreamOut.write(receiveFile, 0, bytesRead);    
-                }
+                }while(inFromServer.available() != 0);
+				
+				outgoingServerSocket.close();
+				clientSocket.close();
+				
+				timesRun++;
+				avgLookup = elapsedTime/timesRun;
+				System.out.println("Current routing table lookup time(sec) = " + elapsedTime/1000);
+				System.out.println("Average routing table lookup time(sec) = " + avgLookup/1000);
             }
             catch(Exception e){
                 System.out.println(e);
