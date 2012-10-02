@@ -1,7 +1,9 @@
 import java.io.*; 
 import java.net.*; 
 
-class TCPServer { 
+class TCPServer {
+
+    //No args necessary for this part
   public static void main(String args[]) throws Exception 
     { 
   
@@ -34,6 +36,7 @@ class TCPServer {
             
             InputStream outToClient = new FileInputStream(sendFile);
 
+            //Reads in file and writes to router byte-by-byte
             while( (bytesRead = outToClient.read(sendData)) != -1){
                 System.out.println("There are " + outToClient.available() + " remaining bytes");
                 fileStreamOut.write(sendData, 0, bytesRead);
