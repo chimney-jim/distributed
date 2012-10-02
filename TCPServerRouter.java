@@ -68,9 +68,10 @@ public class TCPServerRouter
                 ipArray[i][2] = "2222";
             }
             
-            TCPServerRouter myServerRouter = new TCPServerRouter();
+            TCPServerRouter myServerRouter = null;
             while(true){
 			try{
+				myServerRouter = new TCPServerRouter();
 				System.out.println("Waiting to receive message");
                 clientSocket = incomingSocket.accept();
 				System.out.println("Message received...getting data.");
