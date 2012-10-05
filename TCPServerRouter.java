@@ -97,7 +97,8 @@ public class TCPServerRouter
                     }while(bytesRead != -1);
                     
                     System.out.println("Data passed");
-                        
+                    
+                    incomingSocket.close();
                     clientSocket.close();
                     
                     //Routing table lookup is always 0
