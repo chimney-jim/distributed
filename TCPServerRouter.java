@@ -36,7 +36,6 @@ public class TCPServerRouter
          }
             catch(IOException e)
             {
-               System.out.println("Could not listen on port: " + portInt);
             }
       }
    	
@@ -93,11 +92,12 @@ public class TCPServerRouter
                     //received file from server and writes it directly to the client byte-by-byte
                     do{
                         bytesRead = inFromServer.read(receiveFile);
-                        System.out.println("There are " + inFromServer.available() + " remaining bytes");
                         fileStreamOut.write(receiveFile, 0, bytesRead);    
-                    }while(inFromServer.available() != 0);
+                    }while(bytesRead != -1);
                     
-                    outgoingServerSocket.close();
+                    System.out.println("Data passed");
+                    
+                    incomingSocket.close();
                     clientSocket.close();
                     
                     //Routing table lookup is always 0
@@ -107,7 +107,6 @@ public class TCPServerRouter
                     System.out.println("Average routing table lookup time(sec) = " + avgLookup/1000);
                 }
                 catch(Exception e){
-                    System.out.println(e);
                 }
 			}
         }
@@ -129,7 +128,6 @@ public class TCPServerRouter
           outgoingServerSocket = new Socket(ipAddress, port);
           OutputStream out = new DataOutputStream(outgoingServerSocket.getOutputStream());
           out.write(sendData);
-		  	System.out.println("check");
           }
           catch(Exception e){
               System.out.println(e);

@@ -17,12 +17,22 @@ class TCPClient {
     private static  long start = System.currentTimeMillis();
     private static  long transferTime = 0;
     private static  String messageAndIp = null; 
+    private static String fileSizeStr = "";
+    private static String currentSize = "";
+
+    public TCPClient(String ip, int port){
+        try{
+            sendSocket = new Socket(ip, port);
+        }
+        catch(Exception e){
+            System.out.println(e);
+        }
+    }
 
     public static void main(String args[]) throws Exception 
     {
-        sendSocket = new Socket(args[1], 2222);
         messageAndIp = args[0] + ":" + args[1] + ":" + args[2]; 
-        TCPClient client = new TCPClient();
+        TCPClient client = new TCPClient(args[1], 2222);
         
         client.sendRequest();
         // Echo message to ensure it is correct //
@@ -53,18 +63,23 @@ class TCPClient {
             in = new DataInputStream(sendSocket.getInputStream());
             fileFromServer = new File("./" + fileName);
             fos = new FileOutputStream(fileFromServer);
+            in.read(receiveData);
+            fileSizeStr = new String(receiveData);
+            fileSizeStr = fileSizeStr.trim();
         }
         catch(Exception e){
             System.out.println(e);
         }
 
         try{
-            while(!sendSocket.isClosed()){ 
-                available = in.available();
-                System.out.println(available);
+            while(!currentSize.equals(fileSizeStr)){
+                //System.out.println(in.available());
                 bytesRead = in.read(receiveData, 0, receiveData.length);
                 fos.write(receiveData, 0, bytesRead);
                 fileSize += bytesRead;
+                currentSize = String.valueOf(fileSize);
+                currentSize = currentSize.trim();
+                System.out.println(fileSizeStr + " " + currentSize);
             }
         }
         catch(Exception e){
