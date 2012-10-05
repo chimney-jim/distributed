@@ -93,10 +93,10 @@ public class TCPServerRouter
                     //received file from server and writes it directly to the client byte-by-byte
                     while(!outgoingServerSocket.isClosed()){
                         bytesRead = inFromServer.read(receiveFile);
-                            System.out.println(bytesRead);
-                        System.out.println("There are " + inFromServer.available() + " remaining bytes");
                         fileStreamOut.write(receiveFile, 0, bytesRead);    
                     }
+                    
+                    System.out.println("Data passed");
                         
                     clientSocket.close();
                     
