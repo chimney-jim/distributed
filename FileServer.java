@@ -15,12 +15,23 @@ public class FileServer {
     static byte [] incomingByte = new byte [10240];
     
     static int number = 0;
+    static long fileSize = 0;
+    static String fileSizeStr = null;
     static String str = null;
+
+    public FileServer(){
+        try{
+        servSock = new ServerSocket(2222);
+        }
+        catch(Exception e){
+            System.out.println(e);
+        }
+    }
 
     public static void main (String [] args ) throws IOException {
     // create socket
-    servSock = new ServerSocket(2222);
-    
+    FileServer fileServ = new FileServer();
+
     while (true) {
       System.out.println("Waiting...");
 
@@ -41,16 +52,21 @@ public class FileServer {
 	  
 	  myFile = new File (str);
 	  fis = new FileInputStream(myFile);
+      fileSize = myFile.length();
+      fileSizeStr = String.valueOf(fileSize);
+      System.out.println(fileSizeStr);
+      incomingByte = fileSizeStr.getBytes();
+      os.write(incomingByte);
       
       System.out.println("Sending...");
       
 	  while ((number = fis.read(incomingByte)) >= 0) 	
 		{
-		os.write(incomingByte,0,number);
+            os.write(incomingByte,0,number);
 		}
 		
 	  System.out.println("Done...");
-	  servSock.close();
+	  sock.close();
       }
     }
 }
