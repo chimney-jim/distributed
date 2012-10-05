@@ -20,7 +20,10 @@ public class TCPServerRouter
 	  static String ipAddressOfServer = null;
 	  static String[] messages = null;
       static String ipArray [][] = new String[5][3];
-   
+      static InputStream inFromServer = null; 
+      static OutputStream fileStreamOut = null;
+      static InputStream inFromClient = null;
+
       static byte[] receiveData = new byte[10240]; 
       static byte[] sendData  = new byte[10240]; 
 	  static byte[] receiveFile = new byte[10240];
@@ -40,11 +43,10 @@ public class TCPServerRouter
    	    //This method receives the string, splits it into necessary parts, and 
    	    //loops up the IP in the routing table
       public void getAndBuildDataToServer() throws Exception {
-            InputStream inFromClient = new DataInputStream(clientSocket.getInputStream());
+            inFromClient = new DataInputStream(clientSocket.getInputStream());
             inFromClient.read(receiveData);
             String message = new String (receiveData);
             message = message.trim();
-			System.out.println(message);
 			messages = message.split(":");
 			message = messages[0];
 			ipAddressOfClient = messages[1];
@@ -56,7 +58,7 @@ public class TCPServerRouter
                if( ipArray[i][0].equals(ipAddressOfServer)) 
                {
 					elapsedTime = System.currentTimeMillis()-start;
-					this.Router( i, sendData, ipAddressOfServer, ipArray[i][2] );
+					this.Router(sendData, ipAddressOfServer, ipArray[i][2] );
                }		   
             }    
          }                     
@@ -83,8 +85,8 @@ public class TCPServerRouter
                     
                     System.out.println("Data built and sent");
                     
-                    InputStream inFromServer = new DataInputStream(outgoingServerSocket.getInputStream());
-                    DataOutputStream fileStreamOut = new DataOutputStream(clientSocket.getOutputStream());
+                    inFromServer = new DataInputStream(outgoingServerSocket.getInputStream());
+                    fileStreamOut = new DataOutputStream(clientSocket.getOutputStream());
                     
                     System.out.println("Receiving data");
     
@@ -113,51 +115,14 @@ public class TCPServerRouter
       //Not really a useful method
       //Could clean this out
       //TODO: clean this out
-      public void Router( int link, byte[] message, String ipAddress,
+      public void Router(byte[] message, String ipAddress,
         String ports ) throws Exception {
         
          int port = Integer.parseInt( ports );
       
-         switch(link) {
-            case 0:
-               this.sendMessage( message, ipAddress, port );
-               break;
-                          
-            case 1:
-               this.sendMessage( message, ipAddress, port );
-               break;
-            
-            case 2:
-               this.sendMessage( message, ipAddress, port );
-               break;
-            
-            case 3:
-               this.sendMessage( message, ipAddress, port );
-               break;
-            
-            case 4:
-               this.sendMessage( message, ipAddress, port );
-               break;
-            
-            case 5:
-               this.sendMessage( message, ipAddress, port );
-               break;
-                
-            case 6:
-               this.sendMessage( message, ipAddress, port );
-               break;
-                
-            case 7:
-               this.sendMessage( message, ipAddress, port );
-               break;
-            
-            
-            default : 
-               System.out.println("No interface to bind to");
-               break;
+        this.sendMessage( message, ipAddress, port );
          }
-        
-      }
+
    	    //Connects to the server and send the message
       public void sendMessage( byte[] message,  String ipAddress, int port ) {
           try{
