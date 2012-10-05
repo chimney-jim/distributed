@@ -36,7 +36,6 @@ public class TCPServerRouter
          }
             catch(IOException e)
             {
-               System.out.println("Could not listen on port: " + portInt);
             }
       }
    	
@@ -108,7 +107,6 @@ public class TCPServerRouter
                     System.out.println("Average routing table lookup time(sec) = " + avgLookup/1000);
                 }
                 catch(Exception e){
-                    System.out.println(e);
                 }
 			}
         }
