@@ -91,13 +91,13 @@ public class TCPServerRouter
                     System.out.println("Receiving data");
     
                     //received file from server and writes it directly to the client byte-by-byte
-                    do{
+                    while(!outgoingServerSocket.isClosed()){
                         bytesRead = inFromServer.read(receiveFile);
+                            System.out.println(bytesRead);
                         System.out.println("There are " + inFromServer.available() + " remaining bytes");
                         fileStreamOut.write(receiveFile, 0, bytesRead);    
-                    }while(inFromServer.available() != 0);
-                    
-                    outgoingServerSocket.close();
+                    }
+                        
                     clientSocket.close();
                     
                     //Routing table lookup is always 0
@@ -129,7 +129,6 @@ public class TCPServerRouter
           outgoingServerSocket = new Socket(ipAddress, port);
           OutputStream out = new DataOutputStream(outgoingServerSocket.getOutputStream());
           out.write(sendData);
-		  	System.out.println("check");
           }
           catch(Exception e){
               System.out.println(e);
