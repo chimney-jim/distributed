@@ -7,8 +7,10 @@ public class TCPServerRouter
        //This file is run with these args: <up-to-5-IPs-of-each-server>
        //
       static ServerSocket incomingSocket = null;
-      static Socket outgoingServerSocket = null; //Sends request to server and receives file
-      static Socket clientSocket = null; //Received request from client and send file to client
+      static Socket outgoingServerSocket = null;
+ //Sends request to server and receives file
+      static Socket clientSocket = null;
+ //Received request from client and send file to client
       int portInt;
       static int bytesRead = 0;
 	  static int sizeOfArgs = 0;
