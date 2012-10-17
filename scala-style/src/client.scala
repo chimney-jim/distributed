@@ -40,12 +40,12 @@ object client {
     println("Transfer rate: " + fileSize / (startTimer / endTimer) + " bytes/ms")
   }
 
-  def sendRequest(socket: Socket, sendData: Array[Byte]) = {
+  def sendRequest(socket: Socket, sendData: Array[Byte]): Unit = {
     val out = new DataOutputStream(socket.getOutputStream)
     out.write(sendData)
   }
 
-  def receiveFileSize(socket: Socket) = {
+  def receiveFileSize(socket: Socket): Long = {
     val in = new DataInputStream(socket.getInputStream)
     val fileSize: Array[Byte] = null
     in.read(fileSize)
@@ -56,7 +56,7 @@ object client {
 
   def receiveFile(socket: Socket, fileName: String, fileSize: Long, currentSize: Long): Unit = {
     val in = new DataInputStream(socket.getInputStream)
-    var receiveData = null
+    val receiveData = null
     val fos = new FileOutputStream(new File(fileName))
     while (fileSize != currentSize) {
       var bytesRead = in.read(receiveData)
