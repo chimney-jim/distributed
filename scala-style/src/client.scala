@@ -25,7 +25,7 @@ object client {
 
     receiveAndWrite(socket, args(0))
 
-    println("File transfer complete")
+    println("File transfer complete"); socket.close();
   }
 
   def receiveAndWrite(socket: Socket, fileName: String): Unit = {

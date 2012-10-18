@@ -18,12 +18,13 @@ object server {
       println("Waiting to receive package...")
       val serverSock = new ServerSocket(2222)
       val clientSock = serverSock.accept
-
       val message = receiveMessage(clientSock)
 
       println(message + " is being retrieved...")
       println("Data in transit...")
       println(fetch(clientSock, message))
+
+      clientSock.close(); serverSock.close()
     }
   }
 
