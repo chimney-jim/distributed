@@ -11,12 +11,12 @@ import java.net._
 
 object router {
 
-  def main(args: List[String]) = {
+  def main(args: Array[String]) = {
     require(args.length < 6, "Must have 5 or less arguments")
 
     val servSock = new ServerSocket(2222)
     val clientSock = servSock.accept()
-    val ipList = buildRoutingTable(args, List())
+    val ipList = buildRoutingTable(args, List(), 0)
     var timesRun = 0
 
     while(true){
@@ -44,9 +44,9 @@ object router {
     }
   }
 
-  def buildRoutingTable(args: List[String], list: List[(String, String)]): List[(String, String)] = {
+  def buildRoutingTable(args: Array[String], list: List[(String, String)], count: Int): List[(String, String)] = {
     if (args.isEmpty) list
-    else buildRoutingTable(args.tail, list ++ List((args.head, "2222")))
+    else buildRoutingTable(args, list ++ List((args(count), "2222")), count + 1)
   }
 
   def buildData(clientSock: Socket, ipList: List[(String, String)]): List[String] = {
