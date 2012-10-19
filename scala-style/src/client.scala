@@ -14,6 +14,7 @@ object client {
   def main(args: Array[String]) = {
     require(args.length == 3, "args must be <fileName> <ipOfRouter> <ipOfServer>")
 
+    //TODO: Try throwing an exception on this Socket
     val socket = new Socket(args(1), 2222)
 
     val messageAndIp = args(0) + ":" + args(1) + ":" + args(2)

@@ -13,7 +13,9 @@ object router {
 
   def main(args: Array[String]) = {
     require(args.length < 6, "Must have 5 or less arguments")
-
+    //TODO: Test where things are failing and why
+    //TODO: Maybe try adding in some exceptions here
+    println("check1")
     val servSock = new ServerSocket(2222)
     val clientSock = servSock.accept()
     val ipList = buildRoutingTable(args, List(), 0)
