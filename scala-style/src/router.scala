@@ -12,30 +12,33 @@ import java.net._
 object router {
 
   def main(args: List[String]) = {
-    require(args < 6, "Must have 5 or less arguments")
+    require(args.length < 6, "Must have 5 or less arguments")
 
     val servSock = new ServerSocket(2222)
     val clientSock = servSock.accept()
-    val ipList = buildRoutingTable(args, List[(String, String)])
+    val ipList = buildRoutingTable(args, List())
     var timesRun = 0
 
     while(true){
       println("This program has been consecuatively run " + timesRun)
       println("Waiting to receive message...")
+      //Get (message, (ipOfServer, port), elapsed time of routing table lookup)
       val messageAndIp = buildData(clientSock, ipList)
-      val routingTableLookupTime = messageAndIp(2)
-      val toServer = new Socket(messageAndIp(1)._1, messageAndIp(1)._2)
-      sendMessage(messages(0).getBytes, toServer)
+      //break apart messageAndIp into it's parts
+      val routingTableLookupTime = messageAndIp.last.toLong
+      val toServer = new Socket(messageAndIp.tail.head.toString, messageAndIp.init.last.toInt)
+
+      sendMessage(messageAndIp.head.getBytes, toServer)
       println("Message sent...\nTransporting data...")
 
-      transportData(clientSocket, toServer)
+      transportData(clientSock, toServer)
 
       println("Data has been transported")
 
       servSock.close; clientSock.close;
 
-      timesRun++
-      var avgLookup = routingTableLookupTime/timesRun
+      timesRun+=1
+      val avgLookup = routingTableLookupTime/timesRun.toLong
       println("Current routing table lookup time " + routingTableLookupTime + "ms")
       println("Average routing table lookup time " + avgLookup + "ms")
     }
@@ -43,17 +46,18 @@ object router {
 
   def buildRoutingTable(args: List[String], list: List[(String, String)]): List[(String, String)] = {
     if (args.isEmpty) list
-    else buildRoutingTable(args.tail, list ::: (args.head, "2222"))
+    else buildRoutingTable(args.tail, list ++ List((args.head, "2222")))
   }
 
-  def buildData(clientSock: Socket, ipList: List[(String, String)]) {
+  def buildData(clientSock: Socket, ipList: List[(String, String)]): List[String] = {
     def receiveMessage(): List[String] = {
-      val receiveData = Array[Byte]
-      val inFromClient = DataInputStream(clientSock.getInputStream)
+      val receiveData: Array[Byte] = null
+      val inFromClient = new DataInputStream(clientSock.getInputStream)
       inFromClient.read(receiveData)
       var message = new String(receiveData)
       message = message.trim
-      val messages: List[String] = message.split(":")
+      val messages = message.split(":")
+      messages.toList
     }
 
     def searchIpList(serverIP: String, ipList: List[(String, String)]): (String, String) = {
@@ -67,7 +71,7 @@ object router {
     val start = System.currentTimeMillis()
     val ipToSendTo = searchIpList(messages(2), ipList)
     val elapsedTime = System.currentTimeMillis()-start
-    List(messages(0), ipToSendTo, elapsedTime)
+    List(messages(0), ipToSendTo._1, ipToSendTo._2, elapsedTime.toString)
   }
 
   def sendMessage(sendData: Array[Byte], toServer: Socket) = {
@@ -78,7 +82,7 @@ object router {
   def transportData(clientSock: Socket, fromServer: Socket) = {
     val in = fromServer.getInputStream
     val out = clientSock.getOutputStream
-    val receiveFile = Array[Byte]
+    val receiveFile: Array[Byte] = null
     var bytesRead = in.read(receiveFile)
     while(bytesRead != -1) {
       out.write(receiveFile, 0, bytesRead)
