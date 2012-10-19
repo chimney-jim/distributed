@@ -16,18 +16,34 @@ object router {
 
     val servSock = new ServerSocket(2222)
     val clientSock = servSock.accept()
-    var start = Int
     val ipList = buildRoutingTable(args, List[(String, String)])
+    var timesRun = 0
 
     while(true){
+      println("This program has been consecuatively run " + timesRun)
       println("Waiting to receive message...")
-      buildData(clientSock, ipList)
+      val messageAndIp = buildData(clientSock, ipList)
+      val routingTableLookupTime = messageAndIp(2)
+      val toServer = new Socket(messageAndIp(1)._1, messageAndIp(1)._2)
+      sendMessage(messages(0).getBytes, toServer)
+      println("Message sent...\nTransporting data...")
+
+      transportData(clientSocket, toServer)
+
+      println("Data has been transported")
+
+      servSock.close; clientSock.close;
+
+      timesRun++
+      var avgLookup = routingTableLookupTime/timesRun
+      println("Current routing table lookup time " + routingTableLookupTime + "ms")
+      println("Average routing table lookup time " + avgLookup + "ms")
     }
   }
 
   def buildRoutingTable(args: List[String], list: List[(String, String)]): List[(String, String)] = {
     if (args.isEmpty) list
-    else {list ::: (args.head, "2222"); buildRoutingTable(args.tail, list)}
+    else buildRoutingTable(args.tail, list ::: (args.head, "2222"))
   }
 
   def buildData(clientSock: Socket, ipList: List[(String, String)]) {
@@ -37,13 +53,36 @@ object router {
       inFromClient.read(receiveData)
       var message = new String(receiveData)
       message = message.trim
-      val messages: List[String] = message.split(":");
+      val messages: List[String] = message.split(":")
     }
 
+    def searchIpList(serverIP: String, ipList: List[(String, String)]): (String, String) = {
+      if (serverIP == ipList.head._1) ipList.head
+      else if (ipList.isEmpty)
+        throw sys.error("There is no server on the network that matches your request")
+      else searchIpList(serverIP, ipList.tail)
+    }
+
+    val messages = receiveMessage()
     val start = System.currentTimeMillis()
-    //TODO: Fix this, probably need to be a recursive function
-    for(i <- receiveMessage()){
-      if (ipList(i, 0) == )
+    val ipToSendTo = searchIpList(messages(2), ipList)
+    val elapsedTime = System.currentTimeMillis()-start
+    List(messages(0), ipToSendTo, elapsedTime)
+  }
+
+  def sendMessage(sendData: Array[Byte], toServer: Socket) = {
+    val out = new DataOutputStream(toServer.getOutputStream)
+    out.write(sendData)
+  }
+
+  def transportData(clientSock: Socket, fromServer: Socket) = {
+    val in = fromServer.getInputStream
+    val out = clientSock.getOutputStream
+    val receiveFile = Array[Byte]
+    var bytesRead = in.read(receiveFile)
+    while(bytesRead != -1) {
+      out.write(receiveFile, 0, bytesRead)
+      bytesRead = in.read(receiveFile)
     }
   }
 }

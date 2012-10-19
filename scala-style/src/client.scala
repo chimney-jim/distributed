@@ -61,6 +61,7 @@ object client {
     while (fileSize != currentSize) {
       var bytesRead = in.read(receiveData)
       fos.write(receiveData)
+      currentSize+=bytesRead.toLong
       println(fileSize + " " + currentSize)
       //receiveFile(socket, fileName, fileSize, currentSize + bytesRead.toLong)
     }
