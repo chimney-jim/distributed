@@ -32,7 +32,7 @@ object client {
     val fileSize = receiveFileSize(socket)
 
     val startTimer = System.currentTimeMillis()
-    receiveFile(socket, fileName, fileSize, 0)
+    receiveFile(socket, fileName, fileSize)
     val endTimer = System.currentTimeMillis()
 
     println("File size: " + fileSize)
@@ -54,16 +54,22 @@ object client {
     fileSizeStr.toLong
   }
 
-  def receiveFile(socket: Socket, fileName: String, fileSize: Long, currentSize: Long): Unit = {
+  def receiveFile(socket: Socket, fileName: String, fileSize: Long): Unit = {
     val in = new DataInputStream(socket.getInputStream)
-    val receiveData = null
+    val receiveData: Array[Byte] = null
     val fos = new FileOutputStream(new File(fileName))
-    while (fileSize != currentSize) {
-      var bytesRead = in.read(receiveData)
-      fos.write(receiveData)
-      currentSize+=bytesRead.toLong
-      println(fileSize + " " + currentSize)
-      //receiveFile(socket, fileName, fileSize, currentSize + bytesRead.toLong)
+
+    def receiveAndWrite(in: DataInputStream, fos: FileOutputStream, fileSize: Long, currentSize: Long) {
+      if (fileSize == currentSize) 1
+      else if (fileSize != currentSize) {
+        var bytesRead = in.read(receiveData)
+        fos.write(receiveData)
+        println(fileSize + " " + currentSize)
+        receiveAndWrite(in, fos, fileSize, currentSize + bytesRead.toLong)
+      }
+      else throw sys.error("File transfer did not complete")
     }
+
+    receiveAndWrite(in, fos, fileSize, 0)
   }
 }
