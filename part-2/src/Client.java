@@ -1,7 +1,11 @@
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.*;
+import java.util.Hashtable;
 import java.util.Scanner;
 
+
+//TODO: Maybe split up the send and receiving ips and file lists
 /**
  * Created with IntelliJ IDEA.
  * User: Stig
@@ -12,8 +16,8 @@ import java.util.Scanner;
 public class Client {
 
     //Sockets for data transfer
-    private Socket routerPipe;
-    private Socket clientPipe;
+    private Socket socket;
+    private ServerSocket serverSocket;
 
     //Input and output streams for data transfer
     private InputStream in;
@@ -21,57 +25,74 @@ public class Client {
 
     //File handler
     private OutputStream fos;
+    private File file;
 
     //Byte arrays to hold data being transferred
     private byte[] sendData = new byte[64000];
-    private byte[] receiveData = new byte[6400];
+    private byte[] receiveData = new byte[64000];
     private int bytesRead;
 
     //Ancillary numbers
     private int available;
     private int fileSize;
 
-    //Strings to handle messages
+    //Message handler
     private String message;
     private String fileSizeStr;
     private String currentSize;
 
+    //File array handler
+    String files;
+    File folder = new File(".");
+    File[] listOfFiles = folder.listFiles();
+    //TODO: Use a different container
+    Hashtable<String, File[]> ipAndFiles;
+
     private Scanner scan = new Scanner(System.in);
 
 
-    public Client(String ip, String port){
-        try{
-            routerPipe = new Socket(ip, Integer.parseInt(port));
-        }
-        catch(Exception e){
-            e.printStackTrace();
-        }
+    public Client(){
+
     }
 
     //Program takes IP and port of server
     public void main(String args[]){
-        Client client = new Client(args[0], args[1]);
+        Client client = new Client();
 
-        client.menu();
+        int choice = client.menu();
+        if (choice == 0)  {
+           System.out.println("Try again");
+           client.menu();
+        }
+        else if (choice == 1)
+            client.retrieveMode(args[0], args[2]);
+        else
+            client.listenMode();
     }
 
-    private void menu(){
+    private int menu(){
         System.out.println("Cake or death?");
         System.out.print("1. Retrieve Mode \n2. Listen Mode");
         switch (scan.nextInt()){
             case 1:
-                this.retrieveMode();
-                break;
+                return 1;
             case 2:
-                this.listenMode();
-                break;
+                return 2;
             default:
-                System.out.println("Try again");
+                return 0;
         }
     }
 
-    private void retrieveMode(){
-        //TODO: Get IPs from other router
+    private void retrieveMode(String routerIP, String routerPort){
+        try{
+            socket = new Socket(routerIP, Integer.parseInt(routerPort));
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+
+        getFileNames();
+
         System.out.println("Please choose an ip to view files");
         //TODO: Display all IPs on other side.
         //TODO: Get file list from that IP they choose
@@ -86,11 +107,35 @@ public class Client {
         this.sendRequest(message);
 
         this.writeFile(message);
+        System.out.println("Data transfer complete");
+
+        try{
+            socket.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    private void getFileNames(){
+        try {
+            in = new DataInputStream(socket.getInputStream());
+        } catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+
+        try {
+            out.write("giveFiles".getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+
+        //TODO: receive ip and file names from router
     }
 
     private void sendRequest(String message){
         try{
-            out = new DataOutputStream(routerPipe.getOutputStream());
+            out = new DataOutputStream(socket.getOutputStream());
             out.write(message.getBytes());
         }
         catch(Exception e){
@@ -101,7 +146,7 @@ public class Client {
     private void writeFile(String fileName){
         //receive file size
         try{
-            in = new DataInputStream(clientPipe.getInputStream());
+            in = new DataInputStream(socket.getInputStream());
             fos = new FileOutputStream(new File(fileName));
             in.read(receiveData);
             fileSizeStr = new String(receiveData);
@@ -110,7 +155,7 @@ public class Client {
         catch(Exception e){
             e.printStackTrace();
         }
-
+        //receive file
         try{
             while(!currentSize.equals(fileSizeStr)){
                 bytesRead = in.read(receiveData, 0, receiveData.length);
@@ -126,6 +171,53 @@ public class Client {
     }
 
     private void listenMode(){
+        //TODO: Need method to give file names
 
+        try{
+            serverSocket = new ServerSocket(2222);
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+
+        //TODO: Find a way to exit listen mode
+        while(true){
+            System.out.println("Waiting to receive message...");
+            //Accept connection and create data streams
+            try{
+                socket = serverSocket.accept();
+                in = new DataInputStream(socket.getInputStream());
+                out = new DataOutputStream(socket.getOutputStream());
+            }
+            catch(Exception e){
+                e.printStackTrace();
+            }
+            //Read in message and trim
+            try {
+                in.read(receiveData);
+                String message = new String(receiveData);
+                message = message.trim();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            System.out.println("Fetching Data...");
+            //Fetch file of message
+            try {
+                file = new File(message);
+                in = new FileInputStream(file);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            //Send file
+            try {
+                while( (bytesRead = in.read(sendData)) != -1){
+                    System.out.println(in.available() + " bytes remaining");
+                    out.write(sendData, 0, bytesRead);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
