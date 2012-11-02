@@ -1,10 +1,12 @@
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 
 //TODO: Maybe split up the send and receiving ips and file lists
+//TODO: close connections
 /**
  * Created with IntelliJ IDEA.
  * User: Stig
@@ -24,7 +26,6 @@ public class Client {
 
     //File handler
     private OutputStream fos;
-    private File file;
 
     //Byte arrays to hold data being transferred
     private byte[] sendData = new byte[64000];
@@ -32,8 +33,9 @@ public class Client {
     private int bytesRead;
 
     //Ancillary numbers
-    private int available;
     private int fileSize;
+    Integer numberOfIPs;
+    Integer numberOfFiles;
 
     //Message handler
     private String message;
@@ -41,11 +43,10 @@ public class Client {
     private String currentSize;
 
     //File array handler
-    String files;
     File folder = new File(".");
     File[] listOfLocalFiles = folder.listFiles();
-    String[] listOfRemoteFiles;
-    String[] listOfIPs;
+    ArrayList<String> listOfRemoteFiles;
+    ArrayList<String> listOfIPs;
 
     private Scanner scan = new Scanner(System.in);
 
@@ -89,32 +90,40 @@ public class Client {
         }
         //Get all IP addresses of clients on the router
         getIPs();
+        displayIPs();
         System.out.println("Please choose an ip to view files");
 
         try {
-            socket = new Socket(listOfIPs[scan.nextInt()], 2222);
+            socket = new Socket(listOfIPs.get(scan.nextInt()), 2222);
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
 
         //Get all files of remote client
+        //TODO: Figure out how to make this work with the new if else
         getFileList();
         System.out.println("Please choose a file to retrieve");
 
-        message = listOfRemoteFiles[scan.nextInt()];
+        int selection = scan.nextInt();
 
-        System.out.println("Request for <" + message + "> is being sent" +
-                "\nWaiting to receive....");
-        this.sendRequest(message);
+        if (selection!=0) {
+            message = listOfRemoteFiles.get(scan.nextInt());
 
-        this.writeFile(message);
-        System.out.println("Data transfer complete");
+            System.out.println("Request for <" + message + "> is being sent" +
+                    "\nWaiting to receive....");
+            this.sendRequest(message);
 
-        try{
-            socket.close();
-        }
-        catch(Exception e){
-            e.printStackTrace();
+            this.writeFile(message);
+            System.out.println("Data transfer complete");
+
+            try{
+                socket.close();
+            }
+            catch(Exception e){
+                e.printStackTrace();
+            }
+        } else {
+            displayIPs();
         }
     }
 
@@ -127,26 +136,27 @@ public class Client {
         }
 
         //TODO: Don't think I need this
-        /*try {
+        try {
             out.write("getIPs".getBytes());
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }*/
+        }
 
         //Receive amount of IPs
-        Integer numberOfIPs = null;
         try {
             in.read(receiveData);
             numberOfIPs = new Integer(new String(receiveData));
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
+    }
 
+    private void displayIPs(){
         try {
             for(int i=0; i < numberOfIPs; i++){
                 in.read(receiveData);
-                listOfIPs[i] = new String(receiveData);
-                System.out.println(i + ": " + listOfIPs[i]);
+                listOfIPs.add(new String(receiveData));
+                System.out.println(i + ": " + listOfIPs.get(i));
             }
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
@@ -163,7 +173,6 @@ public class Client {
 
         //out.write();
         //Receive amount of files
-        Integer numberOfFiles = null;
         try {
             in.read(receiveData);
             numberOfFiles = new Integer(new String(receiveData));
@@ -174,9 +183,10 @@ public class Client {
         try {
             for(int i=0; i < numberOfFiles; i++){
                 in.read(receiveData);
-                listOfRemoteFiles[i] = new String(receiveData);
-                System.out.println(i + ": " + listOfRemoteFiles[i]);
+                listOfRemoteFiles.add(new String(receiveData));
+                System.out.println(i + ": " + listOfRemoteFiles.get(i));
             }
+            System.out.println(numberOfFiles + ": Go back to IP list");
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
@@ -253,7 +263,7 @@ public class Client {
             System.out.println("Fetching Data...");
             //Fetch file of message
             try {
-                file = new File(message);
+                File file = new File(message);
                 in = new FileInputStream(file);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
