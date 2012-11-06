@@ -4,8 +4,6 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-//TODO: make sure this thing is finished
-
 /**
  * Created with IntelliJ IDEA.
  * User: Stig
@@ -18,6 +16,7 @@ public class Router {
     //For ip list
     private ArrayList<String> ipList;
     private String ip;
+    private String otherRouterIP;
 
     //Sockets
     private ServerSocket serverSocket;
@@ -51,6 +50,10 @@ public class Router {
             ipList.add(ip);
         }
 
+        System.out.println("Please enther the IP of the other router.");
+
+        otherRouterIP = scan.next();
+
         Router router = new Router();
 
         System.out.println("Waiting to receive command...");
@@ -76,23 +79,50 @@ public class Router {
 
     private void receiveMessage(String command){
             if(command.equals("getIPs")){
-                getAndSendIPs();
+                System.out.println("Grabbing IPs...");
+                getIPs();
+            }
+            else if (command.equals("sendIPs")){
+                System.out.println("Sending IPs...");
+                sendIPs();
             }
     }
 
-    private void getAndSendIPs(){
+    private void getIPs(){
         try {
+            otherRouter = new Socket(otherRouterIP, 2222);
             inFromOtherRouter = new DataInputStream(otherRouter.getInputStream());
             outToOtherRouter = new DataOutputStream(otherRouter.getOutputStream());
             outToClient = new DataOutputStream(client.getOutputStream());
+
+            outToOtherRouter.write("sendIPs".getBytes());
 
             while( (bytesRead = inFromOtherRouter.read(receiveData)) != -1){
                 outToClient.write(receiveData, 0, bytesRead);
             }
 
             inFromOtherRouter.close();
+            outToOtherRouter.close();
             outToClient.close();
             otherRouter.close();
+        } catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+    }
+
+    private void sendIPs(){
+        try {
+            inFromOtherRouter = new DataInputStream(otherRouter.getInputStream());
+            outToOtherRouter = new DataOutputStream(otherRouter.getOutputStream());
+        } catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+
+        try {
+            for(String send: ipList){
+                sendData = send.getBytes();
+                outToOtherRouter.write(sendData);
+            }
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }

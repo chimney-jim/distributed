@@ -6,7 +6,6 @@ import java.util.Scanner;
 
 
 //TODO: Maybe split up the send and receiving ips and file lists
-//TODO: close connections
 /**
  * Created with IntelliJ IDEA.
  * User: Stig
@@ -117,12 +116,16 @@ public class Client {
             System.out.println("Data transfer complete");
 
             try{
+                in.close();
+                out.close();
+                fos.close();
                 socket.close();
             }
             catch(Exception e){
                 e.printStackTrace();
             }
-        } else {
+        }
+        else {
             displayIPs();
         }
     }
@@ -135,7 +138,6 @@ public class Client {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
 
-        //TODO: Don't think I need this
         try {
             out.write("getIPs".getBytes());
         } catch (IOException e) {
