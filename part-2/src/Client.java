@@ -56,8 +56,8 @@ public class Client {
     public static void main(String args[]){
         Client client = new Client();
 
-        client.menu();
-        int choice = scan.nextInt();
+        int choice = client.menu();
+        //int choice = scan.nextInt();
         if (choice == 0)  {
            System.out.println("Try again");
            client.menu();
