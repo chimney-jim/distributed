@@ -14,13 +14,13 @@ import java.util.Scanner;
 public class Router {
 
     //For ip list
-    private ArrayList<String> ipList;
-    private String ip;
-    private String otherRouterIP;
+    private static ArrayList<String> ipList;
+    private static String ip;
+    private static String otherRouterIP;
 
     //Sockets
-    private ServerSocket serverSocket;
-    private Socket client, otherRouter;
+    private static ServerSocket serverSocket;
+    private static Socket client, otherRouter;
 
     //Streams
     private InputStream inFromClient, inFromOtherRouter;
@@ -32,7 +32,7 @@ public class Router {
 
     String command;
     int bytesRead;
-    Scanner scan = new Scanner(System.in);
+    private static Scanner scan = new Scanner(System.in);
 
     public Router(){
         try {
@@ -42,7 +42,7 @@ public class Router {
         }
     }
 
-    public void main(String[] args){
+    public static void main(String[] args){
         System.out.println("Please enter all IPs of all clients on this side" +
         "\nType the letter <e> when finished");
 
@@ -63,7 +63,7 @@ public class Router {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
 
-        receiveMessage(receiveCommand());
+        router.receiveMessage(router.receiveCommand());
     }
 
     private String receiveCommand(){

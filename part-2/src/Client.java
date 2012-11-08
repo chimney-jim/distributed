@@ -47,16 +47,17 @@ public class Client {
     ArrayList<String> listOfRemoteFiles;
     ArrayList<String> listOfIPs;
 
-    private Scanner scan = new Scanner(System.in);
+    private static Scanner scan = new Scanner(System.in);
 
 
     public Client(){}
 
     //Program takes IP and port of server
-    public void main(String args[]){
+    public static void main(String args[]){
         Client client = new Client();
 
-        int choice = client.menu();
+        client.menu();
+        int choice = scan.nextInt();
         if (choice == 0)  {
            System.out.println("Try again");
            client.menu();
