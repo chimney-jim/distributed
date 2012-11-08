@@ -63,7 +63,7 @@ public class Client {
            client.menu();
         }
         else if (choice == 1)
-            client.retrieveMode(args[0], args[2]);
+            client.retrieveMode(args[0], args[1]);
         else
             client.listenMode();
     }
@@ -149,6 +149,7 @@ public class Client {
         try {
             in.read(receiveData);
             numberOfIPs = new Integer(new String(receiveData));
+            System.out.println("This is the length of the ipList: " + numberOfIPs);
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }

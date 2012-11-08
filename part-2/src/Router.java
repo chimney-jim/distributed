@@ -23,15 +23,15 @@ public class Router {
     private static Socket client, otherRouter;
 
     //Streams
-    private InputStream inFromClient, inFromOtherRouter;
-    private OutputStream outToClient, outToOtherRouter;
+    private static InputStream inFromClient, inFromOtherRouter;
+    private static OutputStream outToClient, outToOtherRouter;
 
     //Data buffers
-    byte[] sendData = new byte[64000];
-    byte[] receiveData = new byte[64000];
+    static byte[] sendData = new byte[64000];
+    static byte[] receiveData = new byte[64000];
 
     String command;
-    int bytesRead;
+    static int bytesRead;
     private static Scanner scan = new Scanner(System.in);
 
     public Router(){
@@ -83,16 +83,15 @@ public class Router {
 
     private void receiveMessage(String command){
             if(command.equals("getIPs")){
-                System.out.println("Grabbing IPs...");
                 getIPs();
             }
             else if (command.equals("sendIPs")){
-                System.out.println("Sending IPs...");
                 sendIPs();
             }
     }
 
-    private void getIPs(){
+    private static void getIPs(){
+        System.out.println("Grabbing IPs...");
         try {
             otherRouter = new Socket(otherRouterIP, 2222);
             inFromOtherRouter = new DataInputStream(otherRouter.getInputStream());
@@ -101,7 +100,12 @@ public class Router {
 
             outToOtherRouter.write("sendIPs".getBytes());
 
+            receiveData = new byte[64000];
+            inFromOtherRouter.read(receiveData);
+            outToClient.write(receiveData);
+
             while( (bytesRead = inFromOtherRouter.read(receiveData)) != -1){
+                System.out.println(new String(receiveData).trim());
                 outToClient.write(receiveData, 0, bytesRead);
             }
 
@@ -114,21 +118,33 @@ public class Router {
         }
     }
 
-    private void sendIPs(){
+    private static void sendIPs(){
+        System.out.println("Sending IPs...");
         try {
-            inFromOtherRouter = new DataInputStream(otherRouter.getInputStream());
-            outToOtherRouter = new DataOutputStream(otherRouter.getOutputStream());
+            inFromOtherRouter = new DataInputStream(client.getInputStream());
+            outToOtherRouter = new DataOutputStream(client.getOutputStream());
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
 
+        String ipListSize = String.valueOf(ipList.size());
         try {
-            for(String send: ipList){
-                sendData = send.getBytes();
+            outToOtherRouter.write(ipListSize.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+
+        System.out.println("passed streams");
+        try {
+            for(int i=0; i<ipList.size(); i++){
+                System.out.println(ipList.get(i));
+                sendData = ipList.get(i).getBytes();
                 outToOtherRouter.write(sendData);
             }
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (NullPointerException e){
+            System.out.println("Cannot send IPs...");
         }
     }
 }
