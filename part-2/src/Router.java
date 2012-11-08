@@ -1,7 +1,7 @@
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Scanner;
 
 /**
@@ -14,7 +14,7 @@ import java.util.Scanner;
 public class Router {
 
     //For ip list
-    private static ArrayList<String> ipList;
+    private static LinkedList<String> ipList = new LinkedList<String>();
     private static String ip;
     private static String otherRouterIP;
 
@@ -46,11 +46,15 @@ public class Router {
         System.out.println("Please enter all IPs of all clients on this side" +
         "\nType the letter <e> when finished");
 
-        while(!(ip = scan.next()).equals("e")){
-            ipList.add(ip);
+        try {
+            while(!(ip = scan.next()).equals("e")){
+                ipList.add(ip);
+            }
+        } catch (Exception e) {
+            System.out.println("Error adding IP");  //To change body of catch statement use File | Settings | File Templates.
         }
 
-        System.out.println("Please enther the IP of the other router.");
+        System.out.println("Please enter the IP of the other router.");
 
         otherRouterIP = scan.next();
 

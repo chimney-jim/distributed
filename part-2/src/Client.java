@@ -70,7 +70,7 @@ public class Client {
 
     private int menu(){
         System.out.println("Cake or death?");
-        System.out.print("1. Retrieve Mode \n2. Listen Mode");
+        System.out.print("1. Retrieve Mode \n2. Listen Mode\n");
         switch (scan.nextInt()){
             case 1:
                 return 1;
