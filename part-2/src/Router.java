@@ -60,14 +60,16 @@ public class Router {
 
         Router router = new Router();
 
-        System.out.println("Waiting to receive command...");
-        try {
-            client = serverSocket.accept();
-        } catch (IOException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
+        while (true) {
+            System.out.println("Waiting to receive command...");
+            try {
+                client = serverSocket.accept();
+            } catch (IOException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
 
-        router.receiveMessage(router.receiveCommand());
+            router.receiveMessage(router.receiveCommand());
+        }
     }
 
     private String receiveCommand(){
@@ -109,10 +111,11 @@ public class Router {
                 outToClient.write(receiveData, 0, bytesRead);
             }
 
-            inFromOtherRouter.close();
-            outToOtherRouter.close();
-            outToClient.close();
-            otherRouter.close();
+            //TODO: Closes are commented out for now, need to put these back in
+            //inFromOtherRouter.close();
+            //outToOtherRouter.close();
+            //outToClient.close();
+            //otherRouter.close();
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }

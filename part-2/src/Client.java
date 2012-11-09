@@ -45,7 +45,7 @@ public class Client {
     File folder = new File(".");
     File[] listOfLocalFiles = folder.listFiles();
     ArrayList<String> listOfRemoteFiles;
-    ArrayList<String> listOfIPs;
+    ArrayList<String> listOfIPs = new ArrayList<String>();
 
     private static Scanner scan = new Scanner(System.in);
 
@@ -93,8 +93,10 @@ public class Client {
         displayIPs();
         System.out.println("Please choose an ip to view files");
 
+        String clientAddress = listOfIPs.get(scan.nextInt());
+        System.out.println("Connecting to <" + clientAddress + "> on port <" + 2222 + ">");
         try {
-            socket = new Socket(listOfIPs.get(scan.nextInt()), 2222);
+            socket = new Socket(clientAddress, 2222);
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
@@ -106,8 +108,8 @@ public class Client {
 
         int selection = scan.nextInt();
 
-        if (selection!=0) {
-            message = listOfRemoteFiles.get(scan.nextInt());
+        if (selection!=numberOfFiles+1) {
+            message = listOfRemoteFiles.get(selection);
 
             System.out.println("Request for <" + message + "> is being sent" +
                     "\nWaiting to receive....");
@@ -148,7 +150,7 @@ public class Client {
         //Receive amount of IPs
         try {
             in.read(receiveData);
-            numberOfIPs = new Integer(new String(receiveData));
+            numberOfIPs = new Integer(new String(receiveData).trim());
             System.out.println("This is the length of the ipList: " + numberOfIPs);
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
@@ -159,7 +161,7 @@ public class Client {
         try {
             for(int i=0; i < numberOfIPs; i++){
                 in.read(receiveData);
-                listOfIPs.add(new String(receiveData));
+                listOfIPs.add(new String(receiveData).trim());
                 System.out.println(i + ": " + listOfIPs.get(i));
             }
         } catch (IOException e) {
@@ -179,7 +181,7 @@ public class Client {
         //Receive amount of files
         try {
             in.read(receiveData);
-            numberOfFiles = new Integer(new String(receiveData));
+            numberOfFiles = new Integer(new String(receiveData).trim());
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
@@ -187,10 +189,10 @@ public class Client {
         try {
             for(int i=0; i < numberOfFiles; i++){
                 in.read(receiveData);
-                listOfRemoteFiles.add(new String(receiveData));
+                listOfRemoteFiles.add(new String(receiveData).trim());
                 System.out.println(i + ": " + listOfRemoteFiles.get(i));
             }
-            System.out.println(numberOfFiles + ": Go back to IP list");
+            System.out.println((numberOfFiles+1) + ": Go back to IP list");
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
