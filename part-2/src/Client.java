@@ -16,12 +16,13 @@ import java.util.Scanner;
 public class Client {
 
     //Sockets for data transfer
-    private Socket socket;
+    private Socket socket, clientSock;
     private ServerSocket serverSocket;
 
     //Input and output streams for data transfer
     private InputStream in;
     private OutputStream out;
+    private static FileInputStream fileIn = null;
 
     //File handler
     private OutputStream fos;
@@ -42,6 +43,7 @@ public class Client {
     private String currentSize;
 
     //File array handler
+    private static File file = null;
     File folder = new File(".");
     File[] listOfLocalFiles = folder.listFiles();
     ArrayList<String> listOfRemoteFiles;
@@ -95,6 +97,8 @@ public class Client {
 
         String clientAddress = listOfIPs.get(scan.nextInt());
         System.out.println("Connecting to <" + clientAddress + "> on port <" + 2222 + ">");
+        
+        //move this to getFileList()
         try {
             socket = new Socket(clientAddress, 2222);
         } catch (IOException e) {
@@ -106,7 +110,14 @@ public class Client {
         getFileList();
         System.out.println("Please choose a file to retrieve");
 
-        int selection = scan.nextInt();
+        //temp to test if file transfer is working
+        String selection = scan.next();
+
+        this.sendRequest(selection);
+        this.writeFile(selection);
+
+        //TODO: make this get the file list and select based on that.
+        /*int selection = scan.nextInt();
 
         if (selection!=numberOfFiles+1) {
             message = listOfRemoteFiles.get(selection);
@@ -130,7 +141,7 @@ public class Client {
         }
         else {
             displayIPs();
-        }
+        }*/
     }
 
     private void getIPs(){
@@ -200,7 +211,7 @@ public class Client {
 
     private void sendRequest(String message){
         try{
-            out = new DataOutputStream(socket.getOutputStream());
+            out = new DataOutputStream(clientSocket.getOutputStream());
             out.write(message.getBytes());
         }
         catch(Exception e){
@@ -211,11 +222,13 @@ public class Client {
     private void writeFile(String fileName){
         //receive file size
         try{
-            in = new DataInputStream(socket.getInputStream());
-            fos = new FileOutputStream(new File(fileName));
+            in = new DataInputStream(clientSocket.getInputStream());
+            fos = new FileOutputStream(new File("./" + fileName));
+            receiveData = new byte[64000];
             in.read(receiveData);
             fileSizeStr = new String(receiveData);
             fileSizeStr = fileSizeStr.trim();
+            System.out.println("File size is: " + fileSizeStr);
         }
         catch(Exception e){
             e.printStackTrace();
@@ -223,6 +236,7 @@ public class Client {
         //receive file
         try{
             while(!currentSize.equals(fileSizeStr)){
+                receiveData = new byte[64000];
                 bytesRead = in.read(receiveData, 0, receiveData.length);
                 fos.write(receiveData, 0, bytesRead);
                 fileSize += bytesRead;
@@ -240,6 +254,7 @@ public class Client {
 
         try{
             serverSocket = new ServerSocket(2222);
+            System.out.println("Created servSocket");
         }
         catch(Exception e){
             e.printStackTrace();
@@ -250,9 +265,10 @@ public class Client {
             System.out.println("Waiting to receive message...");
             //Accept connection and create data streams
             try{
-                socket = serverSocket.accept();
-                in = new DataInputStream(socket.getInputStream());
-                out = new DataOutputStream(socket.getOutputStream());
+                clientSock = serverSocket.accept();
+                System.out.println("Accepted connection, waiting to receive message");
+                in = new DataInputStream(clientSock.getInputStream());
+                out = new DataOutputStream(clientSock.getOutputStream());
             }
             catch(Exception e){
                 e.printStackTrace();
@@ -262,6 +278,7 @@ public class Client {
                 in.read(receiveData);
                 String message = new String(receiveData);
                 message = message.trim();
+                System.out.println(message);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -269,16 +286,32 @@ public class Client {
             System.out.println("Fetching Data...");
             //Fetch file of message
             try {
-                File file = new File(message);
-                in = new FileInputStream(file);
+                file = new File("kokoro-connect.mkv");
+                fileIn = new FileInputStream(file);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
+            //Send file size
+
+            try {
+                String fileSize = String.valueOf(file.length());
+                System.out.println(fileSize);
+                sendData = new byte[64000];
+                sendData = fileSize.getBytes();
+                out.write(sendData);
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
+
             //Send file
             try {
-                while( (bytesRead = in.read(sendData)) != -1){
-                    System.out.println(in.available() + " bytes remaining");
+                sendData = new byte[64000];
+                while( (bytesRead=fileIn.read(sendData)) != -1){
+                    //System.out.println(fileIn.available() + " bytes remaining");
                     out.write(sendData, 0, bytesRead);
+                    System.out.println(bytesRead);
+                    sendData = new byte[64000];
                 }
             } catch (IOException e) {
                 e.printStackTrace();

@@ -112,10 +112,10 @@ public class Router {
             }
 
             //TODO: Closes are commented out for now, need to put these back in
-            //inFromOtherRouter.close();
-            //outToOtherRouter.close();
-            //outToClient.close();
-            //otherRouter.close();
+            inFromOtherRouter.close();
+            outToOtherRouter.close();
+            outToClient.close();
+            otherRouter.close();
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
