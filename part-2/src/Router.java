@@ -111,7 +111,6 @@ public class Router {
                 outToClient.write(receiveData, 0, bytesRead);
             }
 
-            //TODO: Closes are commented out for now, need to put these back in
             inFromOtherRouter.close();
             outToOtherRouter.close();
             outToClient.close();

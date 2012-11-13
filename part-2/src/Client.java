@@ -43,7 +43,7 @@ public class Client {
     private static String command;
     private static String fileList;
     private String fileSizeStr;
-    private String currentSize;
+    private String currentSize = "";
 
     //File array handler
     private static File file = null;
@@ -106,17 +106,9 @@ public class Client {
 
 
         //Get all files of remote client
-        //TODO: Figure out how to make this work with the new if else
         getFileList(clientAddress);
         System.out.println("Please choose a file to retrieve");
 
-        //temp to test if file transfer is working
-        /*String selection = scan.next();
-
-        this.sendRequest(selection);
-        this.writeFile(selection);*/
-
-        //TODO: make this get the file list and select based on that.
         int selection = scan.nextInt();
 
         if (selection!=numberOfFiles+1) {
@@ -124,7 +116,7 @@ public class Client {
 
             System.out.println("Request for <" + message + "> is being sent" +
                     "\nWaiting to receive....");
-            this.sendRequest(message);
+            //this.sendRequest(message);
 
             this.writeFile(message);
             System.out.println("Data transfer complete");
@@ -232,30 +224,6 @@ public class Client {
          for(int i=0; i<listOfRemoteFiles.size(); i++){
              System.out.println(i + ": " + listOfRemoteFiles.get(i));
          }
-
-        /*try {
-            for(int i=0; i < numberOfFiles; i++){
-                receiveData = new byte[64000];
-                in.read(receiveData);
-                listOfRemoteFiles.add(new String(receiveData).trim());
-                System.out.println(i + ": " + listOfRemoteFiles.get(i));
-            }
-            System.out.println((numberOfFiles+1) + ": Go back to IP list");
-        } catch (IOException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }*/
-    }
-
-    private void sendRequest(String message){
-        try{
-            out = new DataOutputStream(clientSock.getOutputStream());
-            out.write("fetchFile".getBytes());
-            out.write(message.getBytes());
-            out.flush();
-        }
-        catch(Exception e){
-            e.printStackTrace();
-        }
     }
 
     private void writeFile(String fileName){
@@ -265,6 +233,7 @@ public class Client {
             out = new DataOutputStream(clientSock.getOutputStream());
 
             out.write("sendFile".getBytes());
+            out.write(message.getBytes());
             out.flush();
 
             fos = new FileOutputStream(new File("./" + fileName));
@@ -286,6 +255,7 @@ public class Client {
                 fileSize += bytesRead;
                 currentSize = String.valueOf(fileSize);
                 currentSize = currentSize.trim();
+                System.out.println(fileSizeStr + ":" + currentSize);
             }
         }
         catch(Exception e){
@@ -294,8 +264,6 @@ public class Client {
     }
 
     private void listenMode(){
-        //TODO: Need method to give file names
-
         try{
             serverSocket = new ServerSocket(2222);
             System.out.println("Created servSocket");
@@ -304,7 +272,6 @@ public class Client {
             e.printStackTrace();
         }
 
-        //TODO: Find a way to exit listen mode
             //Accept connection and create data streams
         try{
             clientSock = serverSocket.accept();
@@ -344,11 +311,6 @@ public class Client {
             sendFileList();
             receiveData = new byte[64000];
         }
-        else if (command.equals("fetchFile")){
-            System.out.println("Fetching file...");
-            fetchFile();
-            receiveData = new byte[64000];
-        }
         else if (command.equals("sendFile")){
             System.out.println("Sending file...");
             sendFile();
@@ -381,28 +343,13 @@ public class Client {
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
-        /*try {
-            for(int i=0; i<listOfLocalFiles.length; i++){
-                if(listOfLocalFiles[i].isFile()){
-                    sendData = new byte[64000];
-                    files = listOfLocalFiles[i].getName();
-                    System.out.println(files);
-                    sendData = files.getBytes();
-                    out.write(sendData);
-                    out.flush();
-                }
-            }
-        } catch (java.lang.Exception exception) {
-            exception.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }*/
     }
+    private void sendFile(){
 
-    private void fetchFile(){
-            //Read in message and trim
             try {
                 receiveData = new byte[64000];
                 in.read(receiveData);
-                String message = new String(receiveData);
+                message = new String(receiveData);
                 message = message.trim();
                 System.out.println(message);
             } catch (IOException e) {
@@ -416,11 +363,7 @@ public class Client {
                 fileIn = new FileInputStream(file);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
-            }
-     }
-
-    private void sendFile(){
-           //Send file size
+            }           //Send file size
             try {
                 String fileSize = String.valueOf(file.length());
                 System.out.println(fileSize);
@@ -436,7 +379,7 @@ public class Client {
             try {
                 sendData = new byte[64000];
                 while( (bytesRead=fileIn.read(sendData)) != -1){
-                    //System.out.println(fileIn.available() + " bytes remaining");
+                    System.out.println(fileIn.available() + " bytes remaining");
                     out.write(sendData, 0, bytesRead);
                     System.out.println(bytesRead);
                     sendData = new byte[64000];
