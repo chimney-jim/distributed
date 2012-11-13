@@ -2,6 +2,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 
 
@@ -40,6 +41,7 @@ public class Client {
     //Message handler
     private static String message;
     private static String command;
+    private static String fileList;
     private String fileSizeStr;
     private String currentSize;
 
@@ -48,7 +50,7 @@ public class Client {
     File folder = new File(".");
     File[] listOfLocalFiles = folder.listFiles();
     private static String files = null;
-    ArrayList<String> listOfRemoteFiles;
+    ArrayList<String> listOfRemoteFiles = new ArrayList<String>();
     ArrayList<String> listOfIPs = new ArrayList<String>();
 
     private static Scanner scan = new Scanner(System.in);
@@ -195,6 +197,7 @@ public class Client {
 
         try {
             out.write("sendNumberOfFiles".getBytes());
+            System.out.println("Requested number of files");
         } catch (java.lang.Exception exception) {
             exception.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
@@ -203,17 +206,34 @@ public class Client {
             receiveData = new byte[64000];
             in.read(receiveData);
             numberOfFiles = new Integer(new String(receiveData).trim());
+            System.out.println("These are the number of files: " + numberOfFiles);
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
 
         try {
             out.write("sendFileList".getBytes());
+            System.out.println("Sent request for list of files");
         } catch (java.lang.Exception exception) {
             exception.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
 
-        try {
+        try{
+            out.flush();
+            receiveData = new byte[64000];
+            in.read(receiveData);
+            fileList = new String(receiveData).trim();
+            System.out.println(fileList);
+            listOfRemoteFiles = new ArrayList<String>(Arrays.asList(fileList.split("[ ]+")));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+         for(int i=0; i<listOfRemoteFiles.size(); i++){
+             System.out.println(i + ": " + listOfRemoteFiles.get(i));
+         }
+
+        /*try {
             for(int i=0; i < numberOfFiles; i++){
                 receiveData = new byte[64000];
                 in.read(receiveData);
@@ -223,7 +243,7 @@ public class Client {
             System.out.println((numberOfFiles+1) + ": Go back to IP list");
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
+        }*/
     }
 
     private void sendRequest(String message){
@@ -303,10 +323,13 @@ public class Client {
     private void listenMessage(){
         try {
             in = new DataInputStream(clientSock.getInputStream());
+            receiveData = new byte[64000];
             in.read(receiveData);
             command = new String(receiveData).trim();
+            System.out.println("Received command is: " + command);
         } catch (java.lang.Exception exception) {
-            exception.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            exception.printStackTrace();
+            System.exit(0);  //To change body of catch statement use File | Settings | File Templates.
         }
 
         if (command.equals("sendNumberOfFiles")){
@@ -339,14 +362,16 @@ public class Client {
     }
 
     private void sendFileList(){
-         sendData = new byte[64000];
             //Send file list
             try {
                 for(int i=0; i<listOfLocalFiles.length; i++){
                     if(listOfLocalFiles[i].isFile()){
+                        sendData = new byte[64000];
                         files = listOfLocalFiles[i].getName();
+                        System.out.println(files);
                         sendData = files.getBytes();
                         out.write(sendData);
+                        out.flush();
                     }
                 }
             } catch (java.lang.Exception exception) {
@@ -357,6 +382,7 @@ public class Client {
     private void fetchFile(){
             //Read in message and trim
             try {
+                receiveData = new byte[64000];
                 in.read(receiveData);
                 String message = new String(receiveData);
                 message = message.trim();
