@@ -49,7 +49,7 @@ public class Client {
     private static File file = null;
     File folder = new File(".");
     File[] listOfLocalFiles = folder.listFiles();
-    private static String files = null;
+    private static String files = "";
     ArrayList<String> listOfRemoteFiles = new ArrayList<String>();
     ArrayList<String> listOfIPs = new ArrayList<String>();
 
@@ -251,6 +251,7 @@ public class Client {
             out = new DataOutputStream(clientSock.getOutputStream());
             out.write("fetchFile".getBytes());
             out.write(message.getBytes());
+            out.flush();
         }
         catch(Exception e){
             e.printStackTrace();
@@ -264,6 +265,7 @@ public class Client {
             out = new DataOutputStream(clientSock.getOutputStream());
 
             out.write("sendFile".getBytes());
+            out.flush();
 
             fos = new FileOutputStream(new File("./" + fileName));
             receiveData = new byte[64000];
@@ -335,18 +337,22 @@ public class Client {
         if (command.equals("sendNumberOfFiles")){
             System.out.println("Sending number of files...");
             sendNumberOfFiles();
+            receiveData = new byte[64000];
         }
         else if (command.equals("sendFileList")){
             System.out.println("Sending file list...");
             sendFileList();
+            receiveData = new byte[64000];
         }
         else if (command.equals("fetchFile")){
             System.out.println("Fetching file...");
             fetchFile();
+            receiveData = new byte[64000];
         }
         else if (command.equals("sendFile")){
             System.out.println("Sending file...");
             sendFile();
+            receiveData = new byte[64000];
         }
     }
 
@@ -363,20 +369,32 @@ public class Client {
 
     private void sendFileList(){
             //Send file list
-            try {
-                for(int i=0; i<listOfLocalFiles.length; i++){
-                    if(listOfLocalFiles[i].isFile()){
-                        sendData = new byte[64000];
-                        files = listOfLocalFiles[i].getName();
-                        System.out.println(files);
-                        sendData = files.getBytes();
-                        out.write(sendData);
-                        out.flush();
-                    }
-                }
-            } catch (java.lang.Exception exception) {
-                exception.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+
+        try {
+            for(int i=0; i<listOfLocalFiles.length; i++){
+                files += listOfLocalFiles[i].getName() + " ";
             }
+            System.out.println(files);
+            sendData = new byte[64000];
+            out.write(files.getBytes());
+            out.flush();
+        } catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+        /*try {
+            for(int i=0; i<listOfLocalFiles.length; i++){
+                if(listOfLocalFiles[i].isFile()){
+                    sendData = new byte[64000];
+                    files = listOfLocalFiles[i].getName();
+                    System.out.println(files);
+                    sendData = files.getBytes();
+                    out.write(sendData);
+                    out.flush();
+                }
+            }
+        } catch (java.lang.Exception exception) {
+            exception.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }*/
     }
 
     private void fetchFile(){
