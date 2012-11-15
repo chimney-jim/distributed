@@ -95,7 +95,7 @@ public class Client {
             e.printStackTrace();
         }
         //Get all IP addresses of clients on the router
-        getIPs();
+        //getIPs();
         displayIPs();
         System.out.println("Please choose an ip to view files");
 
@@ -136,7 +136,14 @@ public class Client {
         }
     }
 
-    private void getIPs(){
+    public void getIPs(String routerIP, String routerPort){
+         try{
+            socket = new Socket(routerIP, Integer.parseInt(routerPort));
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+
         try {
             in = new DataInputStream(socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
@@ -160,7 +167,7 @@ public class Client {
         }
     }
 
-    private void displayIPs(){
+    public void displayIPs(){
         try {
             for(int i=0; i < numberOfIPs; i++){
                 in.read(receiveData);
@@ -173,7 +180,11 @@ public class Client {
 
     }
 
-    private void getFileList(String clientAddress){
+    public ArrayList<String> returnIPs(){
+        return listOfIPs;
+    }
+
+    public void getFileList(String clientAddress){
         try {
             clientSock = new Socket(clientAddress, 2222);
         } catch (IOException e) {
@@ -226,7 +237,11 @@ public class Client {
          }
     }
 
-    private void writeFile(String fileName){
+    public ArrayList<String> returnFileList(){
+        return listOfRemoteFiles;
+    }
+
+    public void writeFile(String fileName){
         //receive file size
         try{
             in = new DataInputStream(clientSock.getInputStream());
