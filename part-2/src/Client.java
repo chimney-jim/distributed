@@ -29,8 +29,8 @@ public class Client {
     private OutputStream fos;
 
     //Byte arrays to hold data being transferred
-    private byte[] sendData = new byte[64000];
-    private byte[] receiveData = new byte[64000];
+    private byte[] sendData = new byte[4096];
+    private byte[] receiveData = new byte[4096];
     private int bytesRead;
 
     //Ancillary numbers
@@ -206,7 +206,7 @@ public class Client {
         }
         //Receive amount of files
         try {
-            receiveData = new byte[64000];
+            receiveData = new byte[4096];
             in.read(receiveData);
             numberOfFiles = new Integer(new String(receiveData).trim());
             System.out.println("These are the number of files: " + numberOfFiles);
@@ -223,7 +223,7 @@ public class Client {
 
         try{
             out.flush();
-            receiveData = new byte[64000];
+            receiveData = new byte[4096];
             in.read(receiveData);
             fileList = new String(receiveData).trim();
             System.out.println(fileList);
@@ -252,7 +252,7 @@ public class Client {
             out.flush();
 
             fos = new FileOutputStream(new File("./" + fileName));
-            receiveData = new byte[64000];
+            receiveData = new byte[4096];
             in.read(receiveData);
             fileSizeStr = new String(receiveData);
             fileSizeStr = fileSizeStr.trim();
@@ -264,7 +264,7 @@ public class Client {
         //receive file
         try{
             while(!currentSize.equals(fileSizeStr)){
-                receiveData = new byte[64000];
+                receiveData = new byte[4096];
                 bytesRead = in.read(receiveData, 0, receiveData.length);
                 fos.write(receiveData, 0, bytesRead);
                 fileSize += bytesRead;
@@ -307,7 +307,7 @@ public class Client {
     private void listenMessage(){
         try {
             in = new DataInputStream(clientSock.getInputStream());
-            receiveData = new byte[64000];
+            receiveData = new byte[4096];
             in.read(receiveData);
             command = new String(receiveData).trim();
             System.out.println("Received command is: " + command);
@@ -319,17 +319,17 @@ public class Client {
         if (command.equals("sendNumberOfFiles")){
             System.out.println("Sending number of files...");
             sendNumberOfFiles();
-            receiveData = new byte[64000];
+            receiveData = new byte[4096];
         }
         else if (command.equals("sendFileList")){
             System.out.println("Sending file list...");
             sendFileList();
-            receiveData = new byte[64000];
+            receiveData = new byte[4096];
         }
         else if (command.equals("sendFile")){
             System.out.println("Sending file...");
             sendFile();
-            receiveData = new byte[64000];
+            receiveData = new byte[4096];
         }
     }
 
@@ -352,7 +352,7 @@ public class Client {
                 files += listOfLocalFiles[i].getName() + " ";
             }
             System.out.println(files);
-            sendData = new byte[64000];
+            sendData = new byte[4096];
             out.write(files.getBytes());
             out.flush();
         } catch (IOException e) {
@@ -362,7 +362,7 @@ public class Client {
     private void sendFile(){
 
             try {
-                receiveData = new byte[64000];
+                receiveData = new byte[4096];
                 in.read(receiveData);
                 message = new String(receiveData);
                 message = message.trim();
@@ -382,7 +382,7 @@ public class Client {
             try {
                 String fileSize = String.valueOf(file.length());
                 System.out.println(fileSize);
-                sendData = new byte[64000];
+                sendData = new byte[4096];
                 sendData = fileSize.getBytes();
                 out.write(sendData);
             }
@@ -392,12 +392,12 @@ public class Client {
 
             //Send file
             try {
-                sendData = new byte[64000];
+                sendData = new byte[4096];
                 while( (bytesRead=fileIn.read(sendData)) != -1){
                     System.out.println(fileIn.available() + " bytes remaining");
                     out.write(sendData, 0, bytesRead);
                     System.out.println(bytesRead);
-                    sendData = new byte[64000];
+                    sendData = new byte[4096];
                 }
             } catch (IOException e) {
                 e.printStackTrace();
