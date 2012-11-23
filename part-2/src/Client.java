@@ -1,10 +1,15 @@
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.*;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
-
+import javax.crypto.*;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
 
 //TODO: Maybe split up the send and receiving ips and file lists
 /**
@@ -14,7 +19,7 @@ import java.util.Scanner;
  * Time: 6:59 PM
  * To change this template use File | Settings | File Templates.
  */
-public class Client {
+public class Client implements ActionListener{
 
     //Sockets for data transfer
     private Socket socket, clientSock;
@@ -28,10 +33,21 @@ public class Client {
     //File handler
     private OutputStream fos;
 
+    //Encryption
+    //byte[] keyBytes, ivBytes;
+    //SecretKeySpec key = new SecretKeySpec(keyBytes, "DES");
+    //IvParameterSpec ivSpec = new IvParameterSpec(ivBytes)
+    private static Cipher cipher;
+    private static KeyGenerator keyGen;
+    private static SecretKey secKey;
+    private CipherInputStream cis;
+    private CipherOutputStream cos;
+
     //Byte arrays to hold data being transferred
     private byte[] sendData = new byte[4096];
     private byte[] receiveData = new byte[4096];
     private int bytesRead;
+	private boolean complete = false;
 
     //Ancillary numbers
     private int fileSize;
@@ -56,11 +72,177 @@ public class Client {
     private static Scanner scan = new Scanner(System.in);
 
 
-    public Client(){}
-
+   // public Client(){}
+JTextField IPaddress;
+	JTextField num2222;                                        
+	JTextField outPut;
+	String[] stuff = {"one", "two"};
+	JList list2 = new JList(stuff);
+	String[] stuff2 = {" "," "," "," "," "," "};
+	JList displayListIPs = new JList(stuff2);
+	String[] stuff4 = {" "," "," "," "," "," "};
+	JList displayListFile = new JList(stuff4);
+	JScrollPane scrollPane = new JScrollPane(displayListFile);
+	
+	
+	Client(){
+	    //encryptor.setPassword("password");
+	   IPaddress = new JTextField(20);
+		num2222 = new JTextField(10);
+		JFrame frame = new JFrame("Creating a JList Component");
+		JPanel containerTop = new JPanel();
+		containerTop.setLayout(new BoxLayout(containerTop, BoxLayout.Y_AXIS));
+		
+		//top part enter fields
+		JPanel panel1 = new JPanel();
+		panel1.setLayout(new GridLayout(4,3));
+		panel1.add(new JLabel("Enter IP Address"));
+		panel1.add(IPaddress);
+		IPaddress.addActionListener(this);
+		
+		panel1.add(new JLabel("Enter this: 2222"));
+		panel1.add(num2222);
+		num2222.addActionListener(this);
+		
+		//submit button 1
+		JButton submitBut = new JButton("Submit");
+		submitBut.addActionListener(this);
+		panel1.add(submitBut);
+		
+		//submit button 2
+		JPanel panel2 = new JPanel();
+		panel2.setLayout(new GridLayout(2,2));
+		panel2.add(new JLabel("Entered IP Address"));
+		panel2.add(list2);
+		panel2.add(new JLabel("Press button to get IPs"));
+		JButton submitButton = new JButton("GO");
+		panel2.add(submitButton);
+		
+		//add to container
+		
+		
+		submitButton.addActionListener(new ActionListener() { 
+		  public void actionPerformed(ActionEvent e) { 
+			//retrieveMode(IPaddress.getText(),num2222.getText());
+			getIPs(IPaddress.getText(),num2222.getText());
+			displayIPs();
+			
+			displayListIPs.setListData(listOfIPs.toArray());
+		  } 
+		});
+		
+		//output list
+		JPanel panel = new JPanel();
+			panel.setLayout(new GridLayout(1,3));
+			
+			
+			panel.add(new JLabel("Gathered IP Address"));
+			panel.add(displayListIPs);
+			
+			//pick items in IP
+			JButton connectButton = new JButton("Connect");
+			panel.add(connectButton);
+			
+			//add to container
+			connectButton.addActionListener(new ActionListener() { 
+			  public void actionPerformed(ActionEvent e) { 
+				
+				Object sellectionIP = displayListIPs.getSelectedValue();
+				getFileList(sellectionIP.toString());
+				
+				displayListFile.setListData(listOfRemoteFiles.toArray());
+			  } 
+			});
+			
+		// output file list
+		JPanel panel3 = new JPanel();
+			panel3.setLayout(new GridLayout(1,3));
+			
+			
+			panel3.add(new JLabel("Gathered Files List"));
+			
+			panel3.add(scrollPane);
+			
+			//pick items in Files
+			JButton downloadButton = new JButton("download");
+			panel3.add(downloadButton);
+			
+			//add to container
+			
+			
+			downloadButton.addActionListener(new ActionListener() { 
+			  public void actionPerformed(ActionEvent e) { 
+				//retrieveMode();
+				//getIPs();
+				//displayIPs();
+				//returnIPs();
+				//displayListIPs.setListData(listOfIPs);
+				Object sellectionFile = displayListFile.getSelectedValue();
+				writeFile(sellectionFile.toString());
+				
+				if(complete == true)
+				{
+					//String alert = JOptionPane.showInputDialog("Download Successful");
+					String alert = "Download Successful";
+					JOptionPane.showMessageDialog(null, alert);
+				}
+			  } 
+			  
+			});
+		
+		//********************************
+	  
+  
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setUndecorated(true);
+		frame.getRootPane().setWindowDecorationStyle(JRootPane.PLAIN_DIALOG);
+		
+		containerTop.add(panel1);
+		containerTop.add(panel2);
+		containerTop.add(panel);
+		containerTop.add(panel3);
+		containerTop.revalidate();
+		containerTop.repaint();
+		
+		frame.add(containerTop);
+		frame.setSize(600,600);
+		frame.setVisible(true);
+	}
+	//***************************
+	
+	
+	public void actionPerformed(ActionEvent e)
+	{
+		if(e.getActionCommand().equals("Submit"))
+		{
+			String fullString[] = {num2222.getText(), IPaddress.getText()};
+			list2.setListData(fullString);
+		}
+		
+		
+		
+	}
+	
+	//*****************************************
     //Program takes IP and port of server
     public static void main(String args[]){
-        Client client = new Client();
+       Client client = new Client();
+		
+       SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    new Client();
+                }
+            });
+
+        try {
+            cipher = Cipher.getInstance("DES/CBC/PKCS5Padding");
+            keyGen = KeyGenerator.getInstance("DES/CBC/PKCS5Padding");
+            secKey = keyGen.generateKey();
+        } catch (NoSuchAlgorithmException e1) {
+            e1.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (NoSuchPaddingException e1) {
+            e1.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
 
         int choice = client.menu();
         //int choice = scan.nextInt();
@@ -73,7 +255,10 @@ public class Client {
         else
             client.listenMode();
     }
-
+	
+	//my code ******************
+	
+	
     private int menu(){
         System.out.println("Cake or death?");
         System.out.print("1. Retrieve Mode \n2. Listen Mode\n");
@@ -172,7 +357,7 @@ public class Client {
             for(int i=0; i < numberOfIPs; i++){
                 in.read(receiveData);
                 listOfIPs.add(new String(receiveData).trim());
-                System.out.println(i + ": " + listOfIPs.get(i));
+                //System.out.println(i + ": " + listOfIPs.get(i));
             }
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
@@ -243,12 +428,20 @@ public class Client {
 
     public void writeFile(String fileName){
         //receive file size
+
+        try {
+            cipher.init(Cipher.DECRYPT_MODE, secKey);
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+
         try{
             in = new DataInputStream(clientSock.getInputStream());
             out = new DataOutputStream(clientSock.getOutputStream());
+            cis = new CipherInputStream(in, cipher);
 
             out.write("sendFile".getBytes());
-            out.write(message.getBytes());
+            out.write(fileName.getBytes());
             out.flush();
 
             fos = new FileOutputStream(new File("./" + fileName));
@@ -265,7 +458,7 @@ public class Client {
         try{
             while(!currentSize.equals(fileSizeStr)){
                 receiveData = new byte[4096];
-                bytesRead = in.read(receiveData, 0, receiveData.length);
+                bytesRead = cis.read(receiveData, 0, receiveData.length);
                 fos.write(receiveData, 0, bytesRead);
                 fileSize += bytesRead;
                 currentSize = String.valueOf(fileSize);
@@ -276,6 +469,7 @@ public class Client {
         catch(Exception e){
             e.printStackTrace();
         }
+		complete = true;
     }
 
     private void listenMode(){
@@ -361,7 +555,13 @@ public class Client {
     }
     private void sendFile(){
 
-            try {
+        try {
+            cipher.init(Cipher.ENCRYPT_MODE, secKey);
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+
+        try {
                 receiveData = new byte[4096];
                 in.read(receiveData);
                 message = new String(receiveData);
@@ -376,6 +576,7 @@ public class Client {
             try {
                 file = new File(message);
                 fileIn = new FileInputStream(file);
+                cos = new CipherOutputStream(out, cipher);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }           //Send file size
@@ -395,7 +596,7 @@ public class Client {
                 sendData = new byte[4096];
                 while( (bytesRead=fileIn.read(sendData)) != -1){
                     System.out.println(fileIn.available() + " bytes remaining");
-                    out.write(sendData, 0, bytesRead);
+                    cos.write(sendData, 0, bytesRead);
                     System.out.println(bytesRead);
                     sendData = new byte[4096];
                 }
